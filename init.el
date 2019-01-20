@@ -1,164 +1,168 @@
-;; -*- coding: utf-8; lexical-binding: t; -*-
-;; (advice-add #'package-initialize :after #'update-load-path)
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
 
-;; Without this comment emacs25 adds (package-initialize) here
-;; (package-initialize)
+;;;;;; ***配置下载软件包*** ;;;;;;
+(when (>= emacs-major-version 24)
+  (require `package)
+  (package-initialize)
+  (add-to-list `package-archives `("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/") t)
+  )
 
-(push (expand-file-name "~/.emacs.d/lisp") load-path)
+  (require `cl)
 
-(let* ((minver "24.4"))
-  (when (version< emacs-version minver)
-    (error "Emacs v%s or higher is required." minver)))
+(defvar felix/packages `(
+			   company ;; 代码补全
+			   monokai-theme ;; monokai主题
+			   hungry-delete ;; 一下子删掉多个空格
+			   swiper ;; 搜索之类的提示
+			   counsel ;; 有了这个可以替换掉smex
+			   smartparens ;; 左右括号不全
 
-(defvar best-gc-cons-threshold
-  4000000
-  "Best default gc threshold value.  Should NOT be too big!")
+			   ;; javascript
+			   js2-mode
+			   nodejs-repl
+			   
+			   ) "Default packages")
 
-;; don't GC during startup to save time
-(setq gc-cons-threshold most-positive-fixnum)
+ (setq package-selected-packages felix/packages)
 
-(setq emacs-load-start-time (current-time))
+  (defun felix/packages-installed-p ()
+    (loop for pkg in felix/packages
+        when (not (package-installed-p pkg)) do (return nil)
+        finally (return t)))
+  (unless (felix/packages-installed-p)
+    (message "%s" "Refreshing package database...")
+    (package-refresh-contents)
+    (dolist (pkg felix/packages)
+      (when (not (package-installed-p pkg))
+        (package-install pkg))))
 
-;; {{ emergency security fix
-;; https://bugs.debian.org/766397
-(eval-after-load "enriched"
-  '(defun enriched-decode-display-prop (start end &optional param)
-     (list start end)))
-;; }}
-;;----------------------------------------------------------------------------
-;; Which functionality to enable (use t or nil for true and false)
-;;----------------------------------------------------------------------------
-(setq *is-a-mac* (eq system-type 'darwin))
-(setq *win64* (eq system-type 'windows-nt))
-(setq *cygwin* (eq system-type 'cygwin) )
-(setq *linux* (or (eq system-type 'gnu/linux) (eq system-type 'linux)) )
-(setq *unix* (or *linux* (eq system-type 'usg-unix-v) (eq system-type 'berkeley-unix)) )
-(setq *emacs24* (>= emacs-major-version 24))
-(setq *emacs25* (>= emacs-major-version 25))
-(setq *emacs26* (>= emacs-major-version 26))
-(setq *no-memory* (cond
-                   (*is-a-mac*
-                    (< (string-to-number (nth 1 (split-string (shell-command-to-string "sysctl hw.physmem")))) 4000000000))
-                   (*linux* nil)
-                   (t nil)))
 
-;; @see https://www.reddit.com/r/emacs/comments/55ork0/is_emacs_251_noticeably_slower_than_245_on_windows/
-;; Emacs 25 does gc too frequently
-(when *emacs25*
-  ;; (setq garbage-collection-messages t) ; for debug
-  (setq best-gc-cons-threshold (* 64 1024 1024))
-  (setq gc-cons-percentage 0.5)
-  (run-with-idle-timer 5 t #'garbage-collect))
 
-(defmacro local-require (pkg)
-  `(unless (featurep ,pkg)
-     (load (expand-file-name
-             (cond
-               ((eq ,pkg 'bookmark+)
-                (format "~/.emacs.d/site-lisp/bookmark-plus/%s" ,pkg))
-               ((eq ,pkg 'go-mode-load)
-                (format "~/.emacs.d/site-lisp/go-mode/%s" ,pkg))
-               (t
-                 (format "~/.emacs.d/site-lisp/%s/%s" ,pkg ,pkg))))
-           t t)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; *Message* buffer should be writable in 24.4+
-(defadvice switch-to-buffer (after switch-to-buffer-after-hack activate)
-  (if (string= "*Messages*" (buffer-name))
-      (read-only-mode -1)))
+;;;;;;  ***基本工具配置*** ;;;;;;
 
-;; @see https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
-;; Normally file-name-handler-alist is set to
-;; (("\\`/[^/]*\\'" . tramp-completion-file-name-handler)
-;; ("\\`/[^/|:][^/|]*:" . tramp-file-name-handler)
-;; ("\\`/:" . file-name-non-special))
-;; Which means on every .el and .elc file loaded during start up, it has to runs those regexps against the filename.
-(let* ((file-name-handler-alist nil))
-  ;; `package-initialize' takes 35% of startup time
-  ;; need check https://github.com/hlissner/doom-emacs/wiki/FAQ#how-is-dooms-startup-so-fast for solution
-  (require 'init-autoload)
-  (require 'init-modeline)
-  (require 'init-utils)
-  (require 'init-elpa)
-  (require 'init-exec-path) ;; Set up $PATH
-  ;; Any file use flyspell should be initialized after init-spelling.el
-  (require 'init-spelling)
-  (require 'init-gui-frames)
-  (require 'init-uniquify)
-  (require 'init-ibuffer)
-  (require 'init-ivy)
-  (require 'init-hippie-expand)
-  (require 'init-windows)
-  (require 'init-markdown)
-  (require 'init-erlang)
-  (require 'init-javascript)
-  (require 'init-org)
-  (require 'init-css)
-  (require 'init-python)
-  (require 'init-haskell)
-  (require 'init-ruby-mode)
-  (require 'init-lisp)
-  (require 'init-elisp)
-  (require 'init-yasnippet)
-  ;; Use bookmark instead
-  (require 'init-cc-mode)
-  (require 'init-gud)
-  (require 'init-linum-mode)
-  (require 'init-git) ;; git-gutter should be enabled after `display-line-numbers-mode' turned on
-  ;; (require 'init-gist)
-  (require 'init-gtags)
-  ;; init-evil dependent on init-clipboard
-  (require 'init-clipboard)
-  ;; use evil mode (vi key binding)
-  (require 'init-evil)
-  (require 'init-multiple-cursors)
-  (require 'init-ctags)
-  (require 'init-bbdb)
-  (require 'init-gnus)
-  (require 'init-lua-mode)
-  (require 'init-workgroups2)
-  (require 'init-term-mode)
-  (require 'init-web-mode)
-  (require 'init-company)
-  (require 'init-chinese) ;; cannot be idle-required
-  ;; need statistics of keyfreq asap
-  (require 'init-keyfreq)
-  (require 'init-httpd)
+(tool-bar-mode -1 ) ;; 关闭工具栏
+(scroll-bar-mode -1) ;; 关闭滚动条
+(global-hl-line-mode t) ;; 当前行高亮
 
-  ;; projectile costs 7% startup time
+;; 绑定三个常用的函数
+(global-set-key (kbd "C-h C-f") `find-function)
+(global-set-key (kbd "C-h C-v") `find-variable)
+(global-set-key (kbd "C-h C-k") `find-function-on-key)
 
-  ;; misc has some crucial tools I need immediately
-  (require 'init-misc)
+(setq inhibit-splash-screen t) ;; 关闭启动欢迎画面
 
-  (require 'init-emacs-w3m)
-  (require 'init-hydra)
-  (require 'init-shackle)
-  (require 'init-dired)
-  (require 'init-artbollocks-mode)
-  (require 'init-writting)
+(global-display-line-numbers-mode t) ;; 显示行号
+(delete-selection-mode t) ;; 开启选中替换功能
 
-  ;; @see https://github.com/hlissner/doom-emacs/wiki/FAQ
-  ;; Adding directories under "site-lisp/" to `load-path' slows
-  ;; down all `require' statement. So we do this at the end of startup
-  ;; Neither ELPA package nor dependent on "site-lisp/".
-  (setq load-path (cdr load-path))
-  (load (expand-file-name "~/.emacs.d/lisp/init-site-lisp") t t)
+(setq-default cursor-type `bar) ;; 设置光标样式
+(setq make-backup-files nil) ;; 禁止生成备份文件
 
-  ;; my personal setup, other major-mode specific setup need it.
-  ;; It's dependent on "~/.emacs.d/site-lisp/*.el"
-  (load (expand-file-name "~/.custom.el") t nil)
+(setq initial-frame-alist (quote ((fullscreen . maximized)))) ;; 以全屏模式打开
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  ;; @see https://www.reddit.com/r/emacs/comments/4q4ixw/how_to_forbid_emacs_to_touch_configuration_files/
-  ;; See `custom-file' for details.
-  (load (setq custom-file (expand-file-name "~/.emacs.d/custom-set-variables.el")) t t))
+;;;;;; ***模式配置*** ;;;;;;
 
-(setq gc-cons-threshold best-gc-cons-threshold)
+;; 配置org-mode 语法高亮
+(require `org)
+(setq org-src-fontify-natively t)
 
-(when (require 'time-date nil t)
-  (message "Emacs startup time: %d seconds."
-           (time-to-seconds (time-since emacs-load-start-time))))
 
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; End:
-(put 'erase-buffer 'disabled nil)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;; *** 快捷键相关配置*** ;;;;;;
+
+;; 配置a打开历史文件
+(require `recentf)
+(recentf-mode 1)
+(setq recentf-max-menu-items 25)
+(global-set-key "\C-x\ \C-r" `recentf-open-files)
+
+
+;; 定制打开配置n文件的快捷键
+(defun open-my-init-file()
+  (interactive)
+  (find-file "~/.emacs.d/init.el"))
+(global-set-key (kbd "<f11>") `open-my-init-file)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;; ***钩子函数配置*** ;;;;;;
+
+(add-hook `emacs-lisp-mode-hook `show-paren-mode) ;; 添加左右括号匹配
+(add-hook 'emacs-lisp-mode-hook 'smartparens-mode)
+(add-hook 'after-init-hook 'global-company-mode)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;; ***加载插件相关*** ;;;;;;
+(load-theme `monokai t) ;; 加载monokai主题
+
+;; 加载hungry-delete插件
+(require `hungry-delete)
+(global-hungry-delete-mode)
+
+;; swiper 配置
+(ivy-mode 1)
+(setq ivy-use-virtual-buffers t)
+(setq enable-recursive-minibuffers t)
+(global-set-key "\C-s" 'swiper)
+(global-set-key (kbd "C-c C-r") 'ivy-resume)
+(global-set-key (kbd "<f6>") 'ivy-resume)
+(global-set-key (kbd "M-x") 'counsel-M-x)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+(global-set-key (kbd "<f1> f") 'counsel-describe-function)
+(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+(global-set-key (kbd "<f1> l") 'counsel-find-library)
+(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+(global-set-key (kbd "C-c g") 'counsel-git)
+(global-set-key (kbd "C-c j") 'counsel-git-grep)
+(global-set-key (kbd "C-c k") 'counsel-ag)
+(global-set-key (kbd "C-x l") 'counsel-locate)
+(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+(define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
+
+;; 配置smartparens
+(require 'smartparens-config)
+(smartparens-global-mode t) ;; 全局smartparens
+
+;; 配置nodejs-repl
+(require 'nodejs-repl)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;; ***配置默认打开文件方式*** ;;;;;;;
+
+(setq auto-mode-alist (append `(("\\.js\\'" . js2-mode)) auto-mode-alist))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(company-idle-delay 0.08)
+ '(company-minimum-prefix-length 1)
+ '(cua-mode t nil (cua-base))
+ '(global-display-line-numbers-mode t)
+ '(show-paren-mode t)
+ '(tool-bar-mode nil))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+

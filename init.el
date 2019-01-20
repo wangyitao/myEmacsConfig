@@ -3,43 +3,10 @@
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
 
-;;;;;; ***配置下载软件包*** ;;;;;;
-(when (>= emacs-major-version 24)
-  (require `package)
-  (package-initialize)
-  (add-to-list `package-archives `("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/") t)
-  )
+(add-to-list `load-path "~/.emacs.d/lisp/")
+(require `init-packages)
 
-  (require `cl)
-
-(defvar felix/packages `(
-			   company ;; 代码补全
-			   monokai-theme ;; monokai主题
-			   hungry-delete ;; 一下子删掉多个空格
-			   swiper ;; 搜索之类的提示
-			   counsel ;; 有了这个可以替换掉smex
-			   smartparens ;; 左右括号不全
-
-			   ;; javascript
-			   js2-mode
-			   nodejs-repl
-			   
-			   ) "Default packages")
-
- (setq package-selected-packages felix/packages)
-
-  (defun felix/packages-installed-p ()
-    (loop for pkg in felix/packages
-        when (not (package-installed-p pkg)) do (return nil)
-        finally (return t)))
-  (unless (felix/packages-installed-p)
-    (message "%s" "Refreshing package database...")
-    (package-refresh-contents)
-    (dolist (pkg felix/packages)
-      (when (not (package-installed-p pkg))
-        (package-install pkg))))
-
-
+(setq ring-bell-function 'ignore) ;; 关掉移动到顶部以及移动到底部的声音
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -48,6 +15,7 @@
 (tool-bar-mode -1 ) ;; 关闭工具栏
 (scroll-bar-mode -1) ;; 关闭滚动条
 (global-hl-line-mode t) ;; 当前行高亮
+(global-auto-revert-mode t) ;; 自动重新加载配置文件
 
 ;; 绑定三个常用的函数
 (global-set-key (kbd "C-h C-f") `find-function)
@@ -56,6 +24,10 @@
 
 (setq inhibit-splash-screen t) ;; 关闭启动欢迎画面
 
+;; 禁止自动保存
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+
 (global-display-line-numbers-mode t) ;; 显示行号
 (delete-selection-mode t) ;; 开启选中替换功能
 
@@ -63,13 +35,22 @@
 (setq make-backup-files nil) ;; 禁止生成备份文件
 
 (setq initial-frame-alist (quote ((fullscreen . maximized)))) ;; 以全屏模式打开
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;; ***模式配置*** ;;;;;;
+;; 启用自动补全的功能
+(abbrev-mode t)
+(define-abbrev-table 'global-abbrev-table '(
+					    ;; 使用第一个字符串替换第二个字符串
+					    ("ms" "Mocrosoft ")
+					    ))
 
 ;; 配置org-mode 语法高亮
 (require `org)
 (setq org-src-fontify-natively t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;; ***模式配置*** ;;;;;;
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -100,16 +81,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;; ***加载插件相关*** ;;;;;;
-(load-theme `monokai t) ;; 加载monokai主题
-
-;; 加载hungry-delete插件
-(require `hungry-delete)
-(global-hungry-delete-mode)
 
 ;; swiper 配置
-(ivy-mode 1)
-(setq ivy-use-virtual-buffers t)
+
 (setq enable-recursive-minibuffers t)
 (global-set-key "\C-s" 'swiper)
 (global-set-key (kbd "C-c C-r") 'ivy-resume)
@@ -128,20 +102,10 @@
 (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
 (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
 
-;; 配置smartparens
-(require 'smartparens-config)
-(smartparens-global-mode t) ;; 全局smartparens
-
-;; 配置nodejs-repl
-(require 'nodejs-repl)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-;;;;;; ***配置默认打开文件方式*** ;;;;;;;
-
-(setq auto-mode-alist (append `(("\\.js\\'" . js2-mode)) auto-mode-alist))
 
 
 

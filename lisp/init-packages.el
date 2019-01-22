@@ -2,7 +2,6 @@
 ;;;;;; ***配置下载软件包*** ;;;;;;
 (when (>= emacs-major-version 24)
   (require `package)
-  (package-initialize)
   (add-to-list `package-archives `("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/") t)
   )
 
@@ -41,11 +40,9 @@
 
 
 ;; 加载hungry-delete插件
-(require `hungry-delete)
 (global-hungry-delete-mode)
 
 ;; 配置smartparens
-(require 'smartparens-config)
 (smartparens-global-mode t) ;; 全局smartparens
 
 ;; 配置nodejs-repl

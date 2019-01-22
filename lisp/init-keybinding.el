@@ -33,4 +33,11 @@
 
 (global-set-key (kbd "C-M-\\") 'indent-region-or-buffer) ;; 自动对齐括号
 
+(global-set-key (kbd "C-/") 'hippie-expand) ;; 在company无法补全时自动补全
+
+;; 延迟加载
+(with-eval-after-load 'dired
+    (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+
+
 (provide 'init-keybinding)

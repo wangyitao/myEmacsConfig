@@ -20,6 +20,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+;; 添加自动对齐括号
+(defun indent-buffer ()
+  (interactive)
+  (indent-region (point-min) (point-max)))
+(defun indent-region-or-buffer ()
+  (interactive)
+  (save-excursion
+    (if (region-active-p)
+  	(progn
+	  (indent-region (region-beginning) (region-end))
+	  (message "Indented buffer."))
+      (progn
+        (indent-buffer)
+	(message "Indent buffer .")))))
+
+
 
 ;; 启用自动补全的功能
 (abbrev-mode t)

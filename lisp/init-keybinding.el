@@ -29,4 +29,8 @@
 (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
 
 
+(global-set-key (kbd "C-c p f") 'counsel-git) ;; 从本地git仓库查找文件
+
+(global-set-key (kbd "C-M-\\") 'indent-region-or-buffer) ;; 自动对齐括号
+
 (provide 'init-keybinding)

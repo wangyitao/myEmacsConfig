@@ -40,4 +40,20 @@
     (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
 
+(global-set-key (kbd "M-s o") 'occur-dwim)
+
+
+(global-set-key (kbd "M-s i") 'counsel-imenu)
+
+(global-set-key (kbd "C-=") 'er/expand-region)
+
+(global-set-key (kbd "M-s e") 'iedit-mode)
+
+
+(global-set-key (kbd "C-c t i") 'my-toggle-web-indent)
+
+(global-set-key (kbd "C-c r") 'org-capture) ;; 打开org工作安排
+
+
+
 (provide 'init-keybinding)

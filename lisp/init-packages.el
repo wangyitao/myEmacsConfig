@@ -29,7 +29,13 @@
 			 iedit
 
 			 org-pomodoro
-			 
+			 helm-ag
+			 flycheck
+			 yasnippet-snippets
+			 yasnippet
+			 auto-yasnippet
+			 evil
+			 evil-leader
 			 ) "Default packages")
 
 (setq package-selected-packages felix/packages)
@@ -54,6 +60,7 @@
 
 ;; 配置nodejs-repl
 (require 'nodejs-repl)
+(require 'org-pomodoro)
 
 (require 'popwin)
 (popwin-mode 1)
@@ -105,5 +112,26 @@
 (add-hook 'js2-mode-hook #'js2-refactor-mode)
 (js2r-add-keybindings-with-prefix "C-c C-m")
 
+;; (global-flycheck-mode t) ;; 全局语法检查
+(global-evil-leader-mode) 
 
+(evil-mode 1)
+(setcdr evil-insert-state-map nil)
+(define-key evil-insert-state-map [escape] 'evil-normal-state)
+
+(evil-leader/set-key
+  "ff" 'find-file
+  "bb" 'switch-to-buffer
+  "0"  'select-window-0
+  "1"  'select-window-1
+  "2"  'select-window-2
+  "3"  'select-window-3
+  "w/" 'split-window-right
+  "w-" 'split-window-below
+  ":"  'counsel-M-x
+  "wM" 'delete-other-windows
+  "e" 'find-file
+  "b" 'switch-to-buffer
+  "k" 'kill-buffer
+  )
 (provide 'init-packages)

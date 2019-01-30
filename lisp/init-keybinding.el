@@ -1,3 +1,7 @@
+;; C-k 删除光标后面的字符，C-a 回到句首 C-e 回到句尾 C-d 删除当前字符
+;; C-w 删除前一个单词,C-l 删除整行
+(global-set-key (kbd "C-w") 'backward-kill-word)
+(global-set-key (kbd "C-l") 'kill-whole-line)
 ;; 绑定三个常用的函数
 (global-set-key (kbd "C-h C-f") `find-function)
 (global-set-key (kbd "C-h C-v") `find-variable)
@@ -54,6 +58,18 @@
 
 (global-set-key (kbd "C-c r") 'org-capture) ;; 打开org工作安排
 
+(global-set-key (kbd "M-s e") 'iedit-mode)
 
+;; 更改代码补全配置
+(with-eval-after-load 'company
+  (define-key company-active-map (kbd "M-n") nil)
+  (define-key company-active-map (kbd "M-p") nil)
+  (define-key company-active-map (kbd "C-n") #'company-select-next)
+  (define-key company-active-map (kbd "C-p") #'company-select-previous))
+
+(global-set-key (kbd "C-c p s") 'helm-do-ag-project-root) ;; 过滤比grep块
+
+(global-set-key (kbd "H-w") #'aya-create)
+(global-set-key (kbd "H-y") #'aya-expand)
 
 (provide 'init-keybinding)

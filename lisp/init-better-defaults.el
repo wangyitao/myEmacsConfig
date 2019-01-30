@@ -13,7 +13,6 @@
 (recentf-mode 1)
 (setq recentf-max-menu-items 25)
 
-(require 'org-pomodoro)
 ;;;;;; ***钩子函数配置*** ;;;;;;
 ;; 显示所在位置的括号
 (define-advice show-paren-function (:around (fn) fix-show-paren-function)
@@ -25,6 +24,11 @@
 (add-hook `emacs-lisp-mode-hook `show-paren-mode) ;; 添加左右括号匹配
 (add-hook 'emacs-lisp-mode-hook 'smartparens-mode)
 (add-hook 'after-init-hook 'global-company-mode)
+(add-hook 'js2-mode-hook 'flycheck-mode) ;; 添加语法检查钩子，这个是为js2mode添加语法检查
+
+(yas-reload-all)
+(add-hook 'prog-mode-hook #'yas-minor-mode) ;; 代码块补全
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
